@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TARZAN Admin</title>
+    
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-color: #0a0e27;
+            --card-bg: rgba(20, 35, 70, 0.8);
+            --primary: #00d4ff;
+            --secondary: #b829ff;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff3366;
+            --text: #ffffff;
+            --border: rgba(0, 212, 255, 0.3);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text);
+            padding: 16px;
+            padding-bottom: 20px;
+            min-height: 100vh;
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .admin-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+        
+        .online-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            padding: 16px 8px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            padding: 4px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(15px);
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px 8px;
+            text-align: center;
+            border-radius: 26px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--bg-color);
+        }
+        
+        /* Order Cards */
+        .orders-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .order-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+        
+        .order-card.my-order {
+            border-left: 4px solid var(--success);
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .order-id {
+            font-family: monospace;
+            font-size: 14px;
+            color: var(--primary);
+        }
+        
+        .order-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .badge-pending { background: rgba(255, 170, 0, 0.2); color: var(--warning); }
+        .badge-processing { background: rgba(0, 212, 255, 0.2); color: var(--primary); }
+        
+        .order-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .detail-label {
+            font-size: 11px;
+            opacity: 0.6;
+        }
+        
+        .detail-value {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .order-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+        
+        .order-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: var(--bg-color);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        
+        .btn:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+        
+        .locked-info {
+            background: rgba(255, 170, 0, 0.1);
+            padding: 8px 12px;
+            border-radius: 12px;
+            margin: 8px 0;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255, 170, 0, 0.2);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            opacity: 0.7;
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            padding: 14px 20px;
+            border-radius: 16px;
+            border-left: 4px solid var(--primary);
+            display: none;
+            z-index: 1000;
+        }
+        
+        .toast.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1><i class="fas fa-crown"></i> TARZAN Admin</h1>
+    <div class="admin-badge">
+        <span class="online-dot"></span>
+        <span id="adminName">Admin</span>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value" id="pendingCount">0</div>
+        <div class="stat-label">⏳ Pending</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="myProcessingCount">0</div>
+        <div class="stat-label">🔄 My Orders</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="otherProcessingCount">0</div>
+        <div class="stat-label">👥 Others</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="myCompletedCount">0</div>
+        <div class="stat-label">✅ Done</div>
+    </div>
+</div>
+
+<div class="tabs">
+    <div class="tab active" data-tab="pending">
+        <i class="fas fa-clock"></i> Pending
+    </div>
+    <div class="tab" data-tab="processing">
+        <i class="fas fa-spinner"></i> Processing
+    </div>
+    <div class="tab" data-tab="completed">
+        <i class="fas fa-check-circle"></i> Completed
+    </div>
+</div>
+
+<div class="orders-container" id="ordersContainer">
+    <div class="empty-state">
+        <i class="fas fa-box-open"></i>
+        <p>Loading orders...</p>
+    </div>
+</div>
+
+<div class="toast" id="toast">
+    <span id="toastMessage">Success!</span>
+</div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    
+    let currentAdmin = null;
+    let adminId = null;
+    let allOrders = {};
+    let currentTab = 'pending';
+    
+    function init() {
+        if (tg.initDataUnsafe.user) {
+            adminId = tg.initDataUnsafe.user.id;
+            document.getElementById('adminName').textContent = tg.initDataUnsafe.user.first_name;
+        }
+        
+        loadStats();
+        loadOrders();
+        setInterval(loadStats, 30000);
+        setInterval(loadOrders, 15000);
+    }
+    
+    async function loadStats() {
+        try {
+            const res = await fetch('/api/admin/stats');
+            const stats = await res.json();
+            document.getElementById('pendingCount').textContent = stats.pending || 0;
+            document.getElementById('myProcessingCount').textContent = stats.my_processing || 0;
+            document.getElementById('otherProcessingCount').textContent = stats.other_processing || 0;
+            document.getElementById('myCompletedCount').textContent = stats.my_completed || 0;
+        } catch (e) {
+            console.error('Stats error:', e);
+        }
+    }
+    
+    async function loadOrders() {
+        try {
+            const res = await fetch('/api/admin/orders');
+            allOrders = await res.json();
+            renderOrders();
+        } catch (e) {
+            console.error('Orders error:', e);
+        }
+    }
+    
+    function renderOrders() {
+        const container = document.getElementById('ordersContainer');
+        const orders = Object.values(allOrders);
+        
+        let filtered = orders;
+        if (currentTab === 'pending') {
+            filtered = orders.filter(o => o.status === 'pending');
+        } else if (currentTab === 'processing') {
+            filtered = orders.filter(o => o.status === 'processing');
+        } else if (currentTab === 'completed') {
+            filtered = orders.filter(o => o.status === 'completed');
+        }
+        
+        filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="empty-state"><i class="fas fa-check-circle"></i><p>No orders</p></div>`;
+            return;
+        }
+        
+        container.innerHTML = filtered.map(order => renderOrderCard(order)).join('');
+    }
+    
+    function renderOrderCard(order) {
+        const isMyOrder = order.assigned_to === adminId;
+        const isLocked = order.status === 'processing' && order.assigned_to && order.assigned_to !== adminId;
+        
+        let cardClass = 'order-card';
+        if (isMyOrder) cardClass += ' my-order';
+        
+        const statusBadge = order.status === 'pending' ? 
+            '<span class="order-badge badge-pending"><i class="fas fa-clock"></i> Pending</span>' :
+            '<span class="order-badge badge-processing"><i class="fas fa-spinner"></i> Processing</span>';
+        
+        let actionsHtml = '';
+        
+        if (order.status === 'pending') {
+            actionsHtml = `
+                <div class="order-actions">
+                    <button class="btn btn-primary" onclick="takeOrder('${order.order_id}')">
+                        <i class="fas fa-hand-paper"></i> Take
+                    </button>
+                </div>
+            `;
+        } else if (order.status === 'processing' && isMyOrder) {
+            actionsHtml = `
+                <div class="order-actions">
+                    <button class="btn btn-success" onclick="completeOrder('${order.order_id}')">
+                        <i class="fas fa-check"></i> Done
+                    </button>
+                    <button class="btn btn-outline" onclick="releaseOrder('${order.order_id}')">
+                        <i class="fas fa-undo"></i> Release
+                    </button>
+                </div>
+            `;
+        }
+        
+        let lockedInfo = '';
+        if (isLocked) {
+            lockedInfo = `
+                <div class="locked-info">
+                    <i class="fas fa-lock"></i>
+                    <span>Locked by another admin</span>
+                </div>
+            `;
+        }
+        
+        const createdTime = order.created_at ? new Date(order.created_at).toLocaleTimeString('my-MM', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        
+        return `
+            <div class="${cardClass}">
+                <div class="order-header">
+                    <span class="order-id"><i class="fas fa-hashtag"></i> ${order.order_id}</span>
+                    <span style="font-size: 12px; opacity: 0.7;">${createdTime}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    ${statusBadge}
+                    <span class="order-amount">${order.amount?.toLocaleString() || 0} Ks</span>
+                </div>
+                <div class="order-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Customer</span>
+                        <span class="detail-value">${order.user_name || 'N/A'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Product</span>
+                        <span class="detail-value">${order.product || 'N/A'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Game ID</span>
+                        <span class="detail-value"><code>${order.game_id || 'N/A'}</code></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Server ID</span>
+                        <span class="detail-value">${order.zone_id || 'N/A'}</span>
+                    </div>
+                </div>
+                ${lockedInfo}
+                ${actionsHtml}
+            </div>
+        `;
+    }
+    
+    function takeOrder(orderId) {
+        fetch('/api/admin/orders/take', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: orderId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Order assigned to you!');
+                loadOrders();
+                loadStats();
+            } else {
+                showToast(data.error || 'Failed to take order');
+            }
+        });
+    }
+    
+    function releaseOrder(orderId) {
+        if (!confirm('Release this order?')) return;
+        
+        fetch('/api/admin/orders/release', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: orderId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Order released');
+                loadOrders();
+                loadStats();
+            }
+        });
+    }
+    
+    function completeOrder(orderId) {
+        if (!confirm('Mark this order as completed?')) return;
+        
+        fetch('/api/admin/orders/complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: orderId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Order completed!');
+                loadOrders();
+                loadStats();
+            }
+        });
+    }
+    
+    function showToast(message) {
+        document.getElementById('toastMessage').textContent = message;
+        document.getElementById('toast').classList.add('show');
+        setTimeout(() => {
+            document.getElementById('toast').classList.remove('show');
+        }, 3000);
+    }
+    
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentTab = tab.dataset.tab;
+            renderOrders();
+        });
+    });
+    
+    init();
+    tg.ready();
+</script>
+
+</body>
+</html>
