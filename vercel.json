@@ -1,8 +1,7 @@
 {
   "functions": {
     "api/index.py": {
-      "runtime": "python3.10",
-      "maxDuration": 10
+      "runtime": "python3.9"
     }
   },
   "routes": [
@@ -21,10 +20,6 @@
     {
       "src": "/api/(.*)",
       "dest": "/api/index.py"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/static/favicon.ico"
     },
     {
       "src": "/(.*)",
